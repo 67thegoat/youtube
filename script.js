@@ -19,7 +19,12 @@ function uploadVideo() {
     title,
     channel,
     video,
-    likes: 0
+    likes: 0,
+    dislikes: 0,
+    liked: false,
+    disliked: false,
+    subscribed: false,
+    comments: []
   });
 
   save();
@@ -31,8 +36,73 @@ function uploadVideo() {
   renderVideos();
 }
 
-function likeVideo(i) {
-  videos[i].likes++;
+function toggleLike(i) {
+
+  if(videos[i].liked) {
+    videos[i].likes--;
+    videos[i].liked = false;
+  } else {
+
+    videos[i].likes++;
+    videos[i].liked = true;
+
+    if(videos[i].disliked) {
+      videos[i].dislikes--;
+      videos[i].disliked = false;
+    }
+  }
+
+  save();
+  renderVideos();
+}
+
+function toggleDislike(i) {
+
+  if(videos[i].disliked) {
+    videos[i].dislikes--;
+    videos[i].disliked = false;
+  } else {
+
+    videos[i].dislikes++;
+    videos[i].disliked = true;
+
+    if(videos[i].liked) {
+      videos[i].likes--;
+      videos[i].liked = false;
+    }
+  }
+
+  save();
+  renderVideos();
+}
+
+function toggleSubscribe(i) {
+  videos[i].subscribed = !videos[i].subscribed;
+
+  save();
+  renderVideos();
+}
+
+function addComment(i) {
+
+  const input = document.getElementById(`comment-${i}`);
+
+  const text = input.value.trim();
+
+  if(text === "") return;
+
+  videos[i].comments.push(text);
+
+  input.value = "";
+
+  save();
+  renderVideos();
+}
+
+function deleteComment(videoIndex, commentIndex) {
+
+  videos[videoIndex].comments.splice(commentIndex, 1);
+
   save();
   renderVideos();
 }
@@ -51,6 +121,7 @@ function renderVideos(search = "") {
   filtered.forEach((v, i) => {
 
     container.innerHTML += `
+
       <div class="video">
 
         <iframe src="${v.video}" allowfullscreen></iframe>
@@ -66,9 +137,50 @@ function renderVideos(search = "") {
             <p>${v.channel}</p>
 
             <div class="actions">
-              <button onclick="likeVideo(${i})">
-                👍 ${v.likes}
+
+              <button onclick="toggleLike(${i})">
+                ${v.liked ? "👍 Liked" : "👍 Like"} ${v.likes}
               </button>
+
+              <button onclick="toggleDislike(${i})">
+                ${v.disliked ? "👎 Disliked" : "👎 Dislike"} ${v.dislikes}
+              </button>
+
+              <button onclick="toggleSubscribe(${i})">
+                ${v.subscribed ? "Subscribed" : "Subscribe"}
+              </button>
+
+            </div>
+
+            <div class="comment-area">
+
+              <input
+                id="comment-${i}"
+                placeholder="Write comment..."
+              >
+
+              <button onclick="addComment(${i})">
+                Comment
+              </button>
+
+            </div>
+
+            <div class="comments">
+
+              ${v.comments.map((c, ci) => `
+                <div class="comment">
+
+                  ${c}
+
+                  <button
+                    onclick="deleteComment(${i}, ${ci})"
+                  >
+                    Delete
+                  </button>
+
+                </div>
+              `).join("")}
+
             </div>
 
           </div>
@@ -76,9 +188,9 @@ function renderVideos(search = "") {
         </div>
 
       </div>
+
     `;
   });
-
 }
 
 document.querySelector("header input").addEventListener("input", (e) => {
