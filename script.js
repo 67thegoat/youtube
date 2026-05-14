@@ -5,9 +5,15 @@ function save() {
 }
 
 function uploadVideo() {
-  const title = document.getElementById("title").value;
-  const channel = document.getElementById("channel").value;
-  const video = document.getElementById("video").value;
+
+  const title = document.getElementById("title").value.trim();
+  const channel = document.getElementById("channel").value.trim();
+  const video = document.getElementById("video").value.trim();
+
+  if(title === "" || channel === "" || video === "") {
+    alert("Fill all fields");
+    return;
+  }
 
   videos.unshift({
     title,
@@ -17,6 +23,11 @@ function uploadVideo() {
   });
 
   save();
+
+  document.getElementById("title").value = "";
+  document.getElementById("channel").value = "";
+  document.getElementById("video").value = "";
+
   renderVideos();
 }
 
@@ -26,22 +37,32 @@ function likeVideo(i) {
   renderVideos();
 }
 
-function renderVideos() {
+function renderVideos(search = "") {
+
   const container = document.getElementById("videos");
 
   container.innerHTML = "";
 
-  videos.forEach((v, i) => {
+  const filtered = videos.filter(v =>
+    v.title.toLowerCase().includes(search.toLowerCase()) ||
+    v.channel.toLowerCase().includes(search.toLowerCase())
+  );
+
+  filtered.forEach((v, i) => {
+
     container.innerHTML += `
       <div class="video">
 
         <iframe src="${v.video}" allowfullscreen></iframe>
 
         <div class="info">
+
           <div class="avatar"></div>
 
           <div class="text">
+
             <h3>${v.title}</h3>
+
             <p>${v.channel}</p>
 
             <div class="actions">
@@ -51,11 +72,17 @@ function renderVideos() {
             </div>
 
           </div>
+
         </div>
 
       </div>
     `;
   });
+
 }
+
+document.querySelector("header input").addEventListener("input", (e) => {
+  renderVideos(e.target.value);
+});
 
 renderVideos();
